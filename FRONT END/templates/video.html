@@ -1,0 +1,690 @@
+{% extends 'home.html' %}
+
+{% block navabar %}
+    <ul class="navbar-nav align-items-lg-center ms-auto me-lg-5">
+        <li class="nav-item">
+            <a class="nav-link click-scroll" href="{{url_for('home')}}">Home</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link click-scroll active" style="color: black;" href="{{url_for('video_pred')}}">Video</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link click-scroll active" href="{{url_for('image_pred')}}">Image</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link click-scroll active" href="{{url_for('index')}}">LogOut</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <section class="contact-section section-padding" id="section_6">
+        <!-- Screen Recording Section -->
+        <div class="container mb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-12">
+                    <div class="card shadow-lg">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-video me-2"></i>Screen Recording
+                            </h5>
+                            <div id="liveTimer" class="badge bg-danger" style="display: none;">
+                                <i class="fas fa-circle me-1"></i>
+                                <span id="timerText">00:00</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Recording Status Indicator -->
+                            <div id="recordingStatus" class="mb-4" style="display: none;">
+                                <div class="alert alert-warning d-flex align-items-center">
+                                    <div class="recording-indicator me-2"></div>
+                                    <div>
+                                        <strong id="statusText">Recording in progress...</strong>
+                                        <div class="small mt-1" id="durationText">Duration: 0 seconds</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recording Controls -->
+                            <div class="d-flex justify-content-center gap-3 mb-4">
+                                <button id="startRecordingBtn" class="btn btn-success btn-lg">
+                                    <i class="fas fa-record-vinyl me-2"></i>Start Recording
+                                </button>
+                                <button id="stopRecordingBtn" class="btn btn-danger btn-lg" disabled>
+                                    <i class="fas fa-stop me-2"></i>Stop Recording
+                                </button>
+                            </div>
+                            
+                            <!-- Success Message -->
+                            <div id="successMessage" class="alert alert-success" style="display: none;">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <span id="successText"></span>
+                                <div id="recordingDetails" class="mt-1 small"></div>
+                                <div class="mt-2">
+                                    <a href="#" id="downloadRecordingLink" class="btn btn-sm btn-success">
+                                        <i class="fas fa-download me-1"></i>Download Recording
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Error Message -->
+                            <div id="errorMessage" class="alert alert-danger" style="display: none;">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <span id="errorText"></span>
+                            </div>
+                            
+                            <!-- Delete Success Message -->
+                            <div id="deleteSuccessMessage" class="alert alert-success" style="display: none;">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <span id="deleteSuccessText"></span>
+                            </div>
+                            
+                            <!-- Recently Recorded Videos -->
+                            <div id="recordingsList" class="mt-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-history me-2"></i>Recent Recordings
+                                    </h6>
+                                    <span class="badge bg-secondary" id="recordingCount">0 recordings</span>
+                                </div>
+                                <div id="recordingsContainer" class="list-group">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-video-slash fa-2x mb-2"></i>
+                                        <p>No recordings yet</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Original Video Upload Section -->
+        <center>
+            {% if path %}
+                <div class="mb-4">
+                    <div class="alert alert-info">
+                        <h4 class="mb-2">Prediction: <span class="badge bg-primary">{{prediction}}</span></h4>
+                    </div>
+                    <video style="max-width: 100%; height: auto; max-height: 400px;" controls class="shadow">
+                        <source src="/{{path}}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="mt-2">
+                        <a href="/{{path}}" class="btn btn-sm btn-outline-primary" download>
+                            <i class="fas fa-download me-1"></i>Download Video
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </center>
+        
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-12 mx-auto">
+                    <nav class="d-flex justify-content-center">
+                        <div class="nav nav-tabs align-items-baseline justify-content-center" id="nav-tab" role="tablist">
+                            <button class="nav-link active" id="nav-ContactForm-tab" data-bs-toggle="tab" data-bs-target="#nav-ContactForm" type="button" role="tab" aria-controls="nav-ContactForm" aria-selected="false">
+                                <h5><i class="fas fa-upload me-2"></i>Upload Video</h5>
+                            </button>
+                        </div>
+                    </nav>
+
+                    <div class="tab-content shadow-lg mt-5" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="nav-ContactForm" role="tabpanel" aria-labelledby="nav-ContactForm-tab">
+                            <form class="custom-form contact-form mb-5 mb-lg-0" action="{{url_for('video_pred')}}" method="post" role="form" enctype="multipart/form-data">
+                                <div class="contact-form-body">
+                                    <div class="row">
+                                        <div class="col-lg-12 col-md-12 col-12 text-center">
+                                            <div class="mb-3">
+                                                <label for="videoFile" class="form-label">
+                                                    <i class="fas fa-file-video me-2"></i>Select a video file
+                                                </label>
+                                                <input type="file" name="file" id="videoFile" accept="video/*" 
+                                                       class="form-control" required 
+                                                       onchange="previewVideo(this)">
+                                            </div>
+                                            <div id="videoPreview" class="mb-3" style="display: none;">
+                                                <video id="previewPlayer" controls style="max-width: 100%; max-height: 200px;">
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-10 col-8 mx-auto">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-search me-2"></i>Analyze Video
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JavaScript for Screen Recording -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startBtn = document.getElementById('startRecordingBtn');
+            const stopBtn = document.getElementById('stopRecordingBtn');
+            const statusDiv = document.getElementById('recordingStatus');
+            const successDiv = document.getElementById('successMessage');
+            const errorDiv = document.getElementById('errorMessage');
+            const deleteSuccessDiv = document.getElementById('deleteSuccessMessage');
+            const deleteSuccessText = document.getElementById('deleteSuccessText');
+            const successText = document.getElementById('successText');
+            const errorText = document.getElementById('errorText');
+            const durationText = document.getElementById('durationText');
+            const recordingDetails = document.getElementById('recordingDetails');
+            const downloadRecordingLink = document.getElementById('downloadRecordingLink');
+            const recordingsContainer = document.getElementById('recordingsContainer');
+            const liveTimer = document.getElementById('liveTimer');
+            const timerText = document.getElementById('timerText');
+            const recordingCount = document.getElementById('recordingCount');
+            
+            let recordingInterval = null;
+            let statusCheckInterval = null;
+            let timerInterval = null;
+            let currentSeconds = 0;
+            
+            // Format seconds to MM:SS
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            // Update timer display
+            function updateTimer(seconds) {
+                currentSeconds = seconds;
+                timerText.textContent = formatTime(seconds);
+                durationText.textContent = `Duration: ${seconds} seconds`;
+            }
+            
+            // Check recording status on page load
+            checkRecordingStatus();
+            
+            // Load existing recordings
+            loadRecordings();
+            
+            // Start Recording
+            startBtn.addEventListener('click', function() {
+                // Clear any previous messages
+                hideError();
+                hideDeleteSuccess();
+                successDiv.style.display = 'none';
+                
+                fetch('/start_recording', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        showRecordingStatus();
+                        updateButtonStates(true);
+                        liveTimer.style.display = 'block';
+                        
+                        // Reset and start timer
+                        currentSeconds = 0;
+                        if (timerInterval) {
+                            clearInterval(timerInterval);
+                        }
+                        timerInterval = setInterval(() => {
+                            currentSeconds++;
+                            updateTimer(currentSeconds);
+                        }, 1000);
+                        
+                        // Start checking recording status periodically
+                        if (statusCheckInterval) {
+                            clearInterval(statusCheckInterval);
+                        }
+                        statusCheckInterval = setInterval(checkRecordingStatus, 2000);
+                        
+                    } else {
+                        showError(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Error starting recording. Please try again.');
+                });
+            });
+            
+            // Stop Recording
+            stopBtn.addEventListener('click', function() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                
+                if (statusCheckInterval) {
+                    clearInterval(statusCheckInterval);
+                    statusCheckInterval = null;
+                }
+                
+                fetch('/stop_recording', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        hideRecordingStatus();
+                        updateButtonStates(false);
+                        liveTimer.style.display = 'none';
+                        
+                        // Show success message
+                        successText.textContent = 'Recording saved successfully!';
+                        
+                        if (data.file_path) {
+                            recordingDetails.innerHTML = `
+                                <div><strong>Duration:</strong> ${data.duration}</div>
+                                <div><strong>File Size:</strong> ${data.file_size}</div>
+                            `;
+                            
+                            downloadRecordingLink.href = data.file_path;
+                            downloadRecordingLink.download = data.file_path.split('/').pop();
+                            downloadRecordingLink.style.display = 'inline';
+                            
+                            // Auto-hide success message after 10 seconds
+                            setTimeout(() => {
+                                successDiv.style.display = 'none';
+                            }, 10000);
+                        } else {
+                            recordingDetails.innerHTML = '';
+                            downloadRecordingLink.style.display = 'none';
+                        }
+                        
+                        successDiv.style.display = 'block';
+                        
+                        // Reload recordings list after a delay
+                        setTimeout(loadRecordings, 1500);
+                    } else {
+                        showError(data.message);
+                        // Reset UI state
+                        hideRecordingStatus();
+                        updateButtonStates(false);
+                        liveTimer.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Error stopping recording. Please try again.');
+                    // Reset UI state even on error
+                    hideRecordingStatus();
+                    updateButtonStates(false);
+                    liveTimer.style.display = 'none';
+                });
+            });
+            
+            // Check recording status
+            function checkRecordingStatus() {
+                fetch('/recording_status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.is_recording) {
+                            showRecordingStatus();
+                            updateButtonStates(true);
+                            liveTimer.style.display = 'block';
+                            
+                            // Update timer if we have duration from backend
+                            if (data.duration) {
+                                const seconds = parseFloat(data.duration);
+                                updateTimer(Math.floor(seconds));
+                            }
+                        } else {
+                            // If UI says we're recording but backend says we're not,
+                            // reset the UI state
+                            if (!stopBtn.disabled) {
+                                hideRecordingStatus();
+                                updateButtonStates(false);
+                                liveTimer.style.display = 'none';
+                                
+                                if (timerInterval) {
+                                    clearInterval(timerInterval);
+                                    timerInterval = null;
+                                }
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking status:', error);
+                    });
+            }
+            
+            // Show recording status
+            function showRecordingStatus() {
+                statusDiv.style.display = 'block';
+            }
+            
+            // Hide recording status
+            function hideRecordingStatus() {
+                statusDiv.style.display = 'none';
+            }
+            
+            // Show error message
+            function showError(message) {
+                errorText.textContent = message;
+                errorDiv.style.display = 'block';
+                
+                // Auto-hide error after 10 seconds
+                setTimeout(hideError, 10000);
+            }
+            
+            // Hide error message
+            function hideError() {
+                errorDiv.style.display = 'none';
+            }
+            
+            // Show delete success message
+            function showDeleteSuccess(message) {
+                deleteSuccessText.textContent = message;
+                deleteSuccessDiv.style.display = 'block';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(hideDeleteSuccess, 5000);
+            }
+            
+            // Hide delete success message
+            function hideDeleteSuccess() {
+                deleteSuccessDiv.style.display = 'none';
+            }
+            
+            // Update button states
+            function updateButtonStates(isRecording) {
+                startBtn.disabled = isRecording;
+                stopBtn.disabled = !isRecording;
+                
+                if (isRecording) {
+                    startBtn.classList.remove('btn-success');
+                    startBtn.classList.add('btn-secondary');
+                    stopBtn.classList.remove('btn-secondary');
+                    stopBtn.classList.add('btn-danger');
+                } else {
+                    startBtn.classList.remove('btn-secondary');
+                    startBtn.classList.add('btn-success');
+                    stopBtn.classList.remove('btn-danger');
+                    stopBtn.classList.add('btn-secondary');
+                }
+            }
+            
+            // Delete recording
+            function deleteRecording(filename, element) {
+                if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
+                    return;
+                }
+                
+                fetch('/delete_recording', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename: filename })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Remove the recording element from UI
+                        element.remove();
+                        
+                        // Show success message
+                        showDeleteSuccess('✓ Recording deleted successfully');
+                        
+                        // Update count
+                        updateRecordingCount();
+                        
+                        // If no recordings left, show empty state
+                        const recordings = recordingsContainer.querySelectorAll('.recording-item');
+                        if (recordings.length === 0) {
+                            recordingsContainer.innerHTML = `
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-video-slash fa-2x mb-2"></i>
+                                    <p>No recordings yet</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        showError('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Error deleting recording. Please try again.');
+                });
+            }
+            
+            // Update recording count
+            function updateRecordingCount() {
+                const recordings = recordingsContainer.querySelectorAll('.recording-item');
+                const count = recordings.length;
+                recordingCount.textContent = `${count} recording${count !== 1 ? 's' : ''}`;
+            }
+            
+            // Load recordings list
+            function loadRecordings() {
+                fetch('/get_recordings')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.recordings && data.recordings.length > 0) {
+                            recordingsContainer.innerHTML = '';
+                            data.recordings.forEach(recording => {
+                                const recordingElement = document.createElement('div');
+                                recordingElement.className = 'list-group-item list-group-item-action recording-item';
+                                recordingElement.innerHTML = `
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-video text-primary me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-1 text-truncate" style="max-width: 250px;" title="${recording.name}">
+                                                        ${recording.name}
+                                                    </h6>
+                                                    <small class="text-muted">
+                                                        <i class="far fa-clock me-1"></i>${recording.time}
+                                                        <span class="mx-2">•</span>
+                                                        <i class="fas fa-hdd me-1"></i>${recording.size}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="${recording.path}" class="btn btn-outline-success" download="${recording.name}">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger delete-btn" data-filename="${recording.name}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                // Add event listener for delete button
+                                const deleteBtn = recordingElement.querySelector('.delete-btn');
+                                deleteBtn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    deleteRecording(recording.name, recordingElement);
+                                });
+                                
+                                // Add click event to download when clicking on the item
+                                recordingElement.addEventListener('click', function(e) {
+                                    // Only trigger download if not clicking on buttons
+                                    if (!e.target.closest('.btn-group') && !e.target.classList.contains('btn')) {
+                                        window.location.href = recording.path;
+                                    }
+                                });
+                                
+                                recordingsContainer.appendChild(recordingElement);
+                            });
+                            
+                            // Update count
+                            updateRecordingCount();
+                        } else {
+                            recordingsContainer.innerHTML = `
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-video-slash fa-2x mb-2"></i>
+                                    <p>No recordings yet</p>
+                                </div>
+                            `;
+                            recordingCount.textContent = '0 recordings';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading recordings:', error);
+                        recordingsContainer.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Error loading recordings. Please try again.
+                            </div>
+                        `;
+                        recordingCount.textContent = 'Error';
+                    });
+            }
+            
+            // Video preview for upload form
+            window.previewVideo = function(input) {
+                const preview = document.getElementById('videoPreview');
+                const player = document.getElementById('previewPlayer');
+                
+                if (input.files && input.files[0]) {
+                    const fileURL = URL.createObjectURL(input.files[0]);
+                    player.src = fileURL;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                    player.src = '';
+                }
+            };
+            
+            // Clean up intervals when page is unloaded
+            window.addEventListener('beforeunload', function() {
+                if (timerInterval) clearInterval(timerInterval);
+                if (statusCheckInterval) clearInterval(statusCheckInterval);
+            });
+        });
+    </script>
+    
+    <!-- Add FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .recording-indicator {
+            width: 12px;
+            height: 12px;
+            background-color: #dc3545;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+            display: inline-block;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        .btn-lg {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            min-width: 180px;
+        }
+        
+        .list-group-item {
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .list-group-item:hover {
+            border-left-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        
+        .delete-btn:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-outline-success:hover {
+            background-color: #198754;
+            color: white;
+        }
+        
+        #liveTimer {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        
+        #videoPreview video {
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .recording-item {
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .recording-item:hover {
+            border-left-color: #198754;
+        }
+        
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        #deleteSuccessMessage {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 300px;
+        }
+    </style>
+{% endblock %}
